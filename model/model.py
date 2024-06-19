@@ -98,7 +98,7 @@ class Rec3D(nn.Module):
         self.enc_conv_11.requires_grad = True
         self.enc_conv_12.requires_grad = True
 
-    def conv_block(self, x, cloud, *args):
+    def conv_block(self, x, *args):
         """
             Does sucessives convolutions with relu activation and batch normalization
             for every convolution in arguments
@@ -138,6 +138,11 @@ class Rec3D(nn.Module):
         bottleneck = self.conv_block(skip_3, self.enc_conv_10, self.enc_conv_11, self.enc_conv_12)
         bottleneck = self.pool(bottleneck)
 
+        print(skip_0.shape)
+        print(skip_1.shape)
+        print(skip_2.shape)
+        print(skip_3.shape)
+        print(bottleneck.shape)
 
         # DECODING
 
@@ -164,8 +169,4 @@ class Rec3D(nn.Module):
 
 
 if __name__ == "__main__":
-    # model = vgg16(weights=VGG16_Weights.IMAGENET1K_FEATURES)
-    # for name, layer in model.named_modules():
-    #     print(name, layer)
-
-    print(transforms)
+    Rec3D()(torch.rand((1, 3, 224, 224)))
