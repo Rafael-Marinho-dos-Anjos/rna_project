@@ -17,10 +17,10 @@ class EmbeddingModule(nn.Module):
     def forward(self, features, cloud):
         features = self.resize(features)
 
-        pc_out = torch.cat((cloud, features), dim=0)
+        pc_out = torch.cat((cloud, features), dim=-3)
         pc_out = self.proj_conv(pc_out)
-        pc_out = self.activation(pc_out)
         pc_out = self.fusion_conv(pc_out)
+        pc_out = self.activation(pc_out)
 
         return pc_out
 

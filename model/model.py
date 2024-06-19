@@ -3,6 +3,8 @@ import torch
 from torch import nn
 from torchvision.models import vgg16, VGG16_Weights
 
+from model.embedding_module_simple import EmbeddingModule
+
 
 transforms = VGG16_Weights.IMAGENET1K_FEATURES.transforms()
 
@@ -56,17 +58,24 @@ class Rec3D(nn.Module):
         self.dec_conv_11 = nn.Conv2d(128, 64, kernel_size=3, padding=1)
         self.dec_conv_12 = nn.Conv2d(64, output_size, kernel_size=3, padding=1)
 
+        # embedding modules
+        self.emb_mod_0 = EmbeddingModule([112, 112, 64], [128, 128, 128])
+        self.emb_mod_1 = EmbeddingModule([56, 56, 128], [128, 128, 128])
+        self.emb_mod_2 = EmbeddingModule([28, 28, 256], [128, 128, 128])
+        self.emb_mod_3 = EmbeddingModule([14, 14, 512], [128, 128, 128])
+        self.emb_mod_4 = EmbeddingModule([7, 7, 512], [128, 128, 128])
 
         # OTHER LAYERS
         self.upsampling = nn.UpsamplingBilinear2d(scale_factor=2)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.relu = nn.ReLU()
-        self.softmax = nn.Softmax(dim=1)
+        self.sig = nn.Sigmoid()
         self.batch_norm32 = nn.BatchNorm2d(32)
         self.batch_norm64 = nn.BatchNorm2d(64)
         self.batch_norm128 = nn.BatchNorm2d(128)
         self.batch_norm256 = nn.BatchNorm2d(256)
         self.batch_norm512 = nn.BatchNorm2d(512)
+
 
     def freeze_encoder_block(self):
         self.enc_conv_0.requires_grad = False
@@ -119,10 +128,9 @@ class Rec3D(nn.Module):
         
         return x
 
-    def forward(self, x):
+    def forward(self, x, pc):
         
         # ENCODING
-
         skip_0 = self.conv_block(x, self.enc_conv_0, self.enc_conv_1)
         skip_0 = self.pool(skip_0)
 
@@ -138,14 +146,7 @@ class Rec3D(nn.Module):
         bottleneck = self.conv_block(skip_3, self.enc_conv_10, self.enc_conv_11, self.enc_conv_12)
         bottleneck = self.pool(bottleneck)
 
-        print(skip_0.shape)
-        print(skip_1.shape)
-        print(skip_2.shape)
-        print(skip_3.shape)
-        print(bottleneck.shape)
-
         # DECODING
-
         upsampled = self.upsampling(bottleneck)
         upsampled = self.conv_block(upsampled, self.dec_conv_0, self.dec_conv_1, self.dec_conv_2)
 
@@ -165,7 +166,13 @@ class Rec3D(nn.Module):
         upsampled = self.upsampling(upsampled)
         upsampled = self.conv_block(upsampled, self.dec_conv_11, self.dec_conv_12)
 
-        return self.softmax(upsampled)
+        cloud_0 = self.emb_mod_4(bottleneck, pc)
+        cloud_1 = self.emb_mod_3(skip_3, cloud_0)
+        cloud_2 = self.emb_mod_2(skip_2, cloud_1)
+        cloud_3 = self.emb_mod_1(skip_1, cloud_2)
+        cloud = self.emb_mod_0(skip_0, cloud_3)
+
+        return self.sig(upsampled), cloud, cloud_3, cloud_2, cloud_1, cloud_0
 
 
 if __name__ == "__main__":
