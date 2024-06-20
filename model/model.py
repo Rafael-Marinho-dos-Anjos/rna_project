@@ -172,7 +172,7 @@ class Rec3D(nn.Module):
         cloud_3 = self.emb_mod_1(skip_1, cloud_2)
         cloud = self.emb_mod_0(skip_0, cloud_3)
 
-        return self.sig(upsampled), cloud, cloud_3, cloud_2, cloud_1, cloud_0
+        return self.sig(upsampled), cloud
 
 
 if __name__ == "__main__":
