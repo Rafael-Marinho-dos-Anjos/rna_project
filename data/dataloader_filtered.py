@@ -55,7 +55,9 @@ with open("data/category.txt", "r") as category:
     category = category.readline(-1)
 
 ds = MyDataset(category)
-train_set, test_set, val_set = random_split(ds, (0.025, 0.97, 0.005))
+drop_percent = 0.8
+ds, dropout = random_split(ds, (1-drop_percent, drop_percent))
+train_set, test_set, val_set = random_split(ds, (0.75, 0.15, 0.1))
 
 train_loader = DataLoader(train_set, shuffle=True)
 test_loader = DataLoader(test_set)
