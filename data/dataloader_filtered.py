@@ -39,7 +39,7 @@ class MyDataset(Dataset):
         try:
             image_no_transform = read_image(self.PREFIX + self.data[index]['img'])
             image = transforms(image_no_transform)
-            mask = self.resize_mask(read_image(self.PREFIX + self.data[index]['mask'])).type(torch.FloatTensor)
+            mask = self.resize_mask(read_image(self.PREFIX + self.data[index]['mask'])).type(torch.FloatTensor) / 255
             data = torch.FloatTensor(sio.loadmat(self.PREFIX + self.data[index]['voxel'])['voxel'])
         
             return image, mask, data, image_no_transform
@@ -62,4 +62,4 @@ test_loader = DataLoader(test_set)
 val_loader = DataLoader(val_set)
 
 if __name__ == "__main__":
-    next(iter(test_loader))
+    print(next(iter(test_loader))[1].max())
