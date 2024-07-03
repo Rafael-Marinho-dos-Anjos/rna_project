@@ -55,8 +55,11 @@ with open("data/category.txt", "r") as category:
     category = category.readline(-1)
 
 ds = MyDataset(category)
-drop_percent = 0.8
-ds, dropout = random_split(ds, (1-drop_percent, drop_percent))
+
+maintain = 750
+if len(ds) > maintain:
+    ds, dropout = random_split(ds, (maintain, len(ds)-maintain))
+    
 train_set, test_set, val_set = random_split(ds, (0.75, 0.15, 0.1))
 
 train_loader = DataLoader(train_set, shuffle=True)

@@ -3,10 +3,10 @@ import torch
 from torch import nn
 from torchvision.models import vgg16, VGG16_Weights
 
-from model.embedding_module_simple import EmbeddingModule
+from model.embedding_module_simple_v2 import EmbeddingModule
 
 
-version = "V1"
+version = "V2"
 
 transforms = VGG16_Weights.IMAGENET1K_FEATURES.transforms()
 
